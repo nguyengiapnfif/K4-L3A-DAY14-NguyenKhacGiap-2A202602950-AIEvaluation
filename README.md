@@ -36,13 +36,11 @@ Hạn nộp mặc định: **23h59 ngày lab (GMT+7)**; coach có thể gia hạ
 
 ## Yêu cầu & Quick Start
 
-**Yêu cầu:** Python 3.11 trở lên. Cần **OpenAI API key** để chạy `domain_assistant.py` (Part 3 — sinh 20 actual answers từ RAG thật); phần code core (`template.py`, Part 1–2) không cần API key.
+**Yêu cầu:** [uv](https://docs.astral.sh/uv/) (tự cài Python 3.11+ nếu máy chưa có). Cần **OpenAI API key** để chạy `domain_assistant.py` (Part 3 — sinh 20 actual answers từ RAG thật); phần code core (`template.py`, Part 1–2) không cần API key.
 
 ```bash
-python --version                                        # xác nhận Python 3.11+
-python -m venv .venv && source .venv/bin/activate       # Windows: .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-pytest tests/ -v                                         # baseline: 42 tests collected, 42 failed
+uv sync                                                  # tạo .venv (Python 3.11+) và cài dependencies từ pyproject.toml
+uv run pytest tests/ -v                                  # baseline: 42 tests collected, 42 failed
 cp .env.example .env                                     # điền OPENAI_API_KEY (chỉ cần cho Part 3)
 ```
 
@@ -113,7 +111,8 @@ data/technology_store/*.md
 ├── golden_dataset.json          # form 20 QA để học viên điền
 ├── data/technology_store/       # corpus tài liệu nguồn của OrbitTech Store
 ├── tests/                       # bộ unit tests kiểm tra evaluation core
-├── requirements.txt
+├── pyproject.toml               # dependencies (quản lý bằng uv)
+├── uv.lock
 └── .env.example
 ```
 

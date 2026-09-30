@@ -75,53 +75,44 @@ Không đưa API key hoặc `.env` lên GitHub.
 
 ## 2. Cài môi trường
 
-Lab yêu cầu **Python 3.11 trở lên**. Chọn hướng dẫn đúng với hệ điều hành và
-kiểm tra version trước khi tạo virtual environment.
+Lab dùng [uv](https://docs.astral.sh/uv/) để quản lý Python, virtual environment
+và dependencies (khai báo trong `pyproject.toml`, khóa phiên bản trong `uv.lock`).
 
-### macOS/Linux
+### Cài uv
 
-```bash
-python3 --version
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-Nếu `python3 --version` thấp hơn 3.11, cài một bản Python mới hơn rồi gọi đúng
-executable, ví dụ `python3.11` hoặc `python3.12`:
+macOS/Linux:
 
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### Windows PowerShell
-
-Liệt kê các bản Python đã cài, sau đó chọn một bản từ 3.11 trở lên:
+Windows PowerShell:
 
 ```powershell
-py -0p
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Nếu Python 3.12 là phiên bản đã cài, thay `-3.11` bằng `-3.12`. Với Windows
-Command Prompt, activate bằng `.venv\Scripts\activate.bat`.
+Kiểm tra bằng `uv --version`.
 
-### Cài dependencies sau khi activate
+### Cài dependencies
 
-Các lệnh dưới đây giống nhau trên macOS, Linux và Windows. `python --version`
-phải trả về 3.11 trở lên:
+Từ thư mục gốc repo (nơi có `pyproject.toml`), chạy một lệnh duy nhất. uv tự tạo
+`.venv` với Python 3.11 trở lên (tải về nếu máy chưa có) và cài dependencies:
 
 ```bash
-python --version
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+uv sync
+```
+
+Không cần activate venv: thêm tiền tố `uv run` cho mọi lệnh Python.
+
+```bash
+uv run python --version
 ```
 
 Kiểm tra import:
 
 ```bash
-python -c "import openai, dotenv, pytest; print('Environment OK')"
+uv run python -c "import openai, dotenv, pytest; print('Environment OK')"
 ```
 
 ---
@@ -133,7 +124,7 @@ python -c "import openai, dotenv, pytest; print('Environment OK')"
 Ngay sau khi cài môi trường, chạy toàn bộ test suite một lần:
 
 ```bash
-pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 Ở starter chưa làm TODO, kết quả dự kiến là **42 tests được collect và 42 tests
@@ -242,16 +233,16 @@ Hoàn thiện `run()`, `generate_report()`, `run_regression()` và
 Hoàn thiện `categorize_failures()`, `find_root_cause()`,
 `generate_improvement_suggestions()` và `generate_improvement_log()`.
 
-### 4.8 `python template.py` khác gì `pytest tests/ -v`?
+### 4.8 `uv run python template.py` khác gì `uv run pytest tests/ -v`?
 
 Hai lệnh không thay thế nhau:
 
 | Lệnh | Mục đích | Nó thực sự chạy gì? |
 |---|---|---|
-| `python template.py` | Manual demo để nhìn output | Chạy `mock_agent` trên 5 sample QA rồi in report/failure analysis. Không gọi API, không chạy real RAG và không kiểm tra mọi function — đặc biệt không cover đầy đủ LLMJudge/regression. Demo chỉ chạy hết sau khi Tasks 1, 2, 4 và 5 đã được implement. |
-| `pytest tests/ -v` | Kiểm tra bài làm | Chạy 42 unit tests cho metrics, wiring, judge, runner, regression và failure analyzer. Đây mới là kết quả dùng để xác nhận core đúng. |
+| `uv run python template.py` | Manual demo để nhìn output | Chạy `mock_agent` trên 5 sample QA rồi in report/failure analysis. Không gọi API, không chạy real RAG và không kiểm tra mọi function — đặc biệt không cover đầy đủ LLMJudge/regression. Demo chỉ chạy hết sau khi Tasks 1, 2, 4 và 5 đã được implement. |
+| `uv run pytest tests/ -v` | Kiểm tra bài làm | Chạy 42 unit tests cho metrics, wiring, judge, runner, regression và failure analyzer. Đây mới là kết quả dùng để xác nhận core đúng. |
 
-`python template.py` chạy thành công **không có nghĩa** 42 tests đã pass. Ngược
+`uv run python template.py` chạy thành công **không có nghĩa** 42 tests đã pass. Ngược
 lại, khi mới làm Task 1–3, demo có thể vẫn dừng ở TODO của Runner/Analyzer dù
 phần vừa làm đã đúng; lúc đó dùng targeted tests dưới đây.
 
@@ -261,11 +252,11 @@ Làm theo đúng thứ tự và chạy test ngay sau mỗi nhóm:
 
 | Checkpoint | Lệnh targeted | Kết quả targeted mong đợi |
 |---|---|---:|
-| Task 1 — Data models + `overall_score` | `pytest tests/test_solution.py::TestEvalResultOverallScore -v` | 3 passed |
-| Task 2 — 5 metrics + `run_full_eval` | `pytest tests/test_solution.py::TestRAGASEvaluator tests/test_solution.py::TestContextMetrics tests/test_solution.py::TestRetrievalMetricWiring::test_run_full_eval_connects_optional_retrieval_metrics -v` | 14 passed, 1 skipped |
-| Task 3 — LLMJudge | `pytest tests/test_solution.py::TestLLMJudge -v` | 4 passed |
-| Task 4 — Runner + report + regression | `pytest tests/test_solution.py::TestBenchmarkRunner tests/test_solution.py::TestRunRegression tests/test_solution.py::TestRetrievalMetricWiring::test_runner_forwards_retrieved_contexts tests/test_solution.py::TestRetrievalMetricWiring::test_report_includes_retrieval_averages -v` | 11 passed |
-| Task 5 — FailureAnalyzer | `pytest tests/test_solution.py::TestFailureAnalyzer tests/test_solution.py::TestGenerateImprovementLog -v` | 9 passed |
+| Task 1 — Data models + `overall_score` | `uv run pytest tests/test_solution.py::TestEvalResultOverallScore -v` | 3 passed |
+| Task 2 — 5 metrics + `run_full_eval` | `uv run pytest tests/test_solution.py::TestRAGASEvaluator tests/test_solution.py::TestContextMetrics tests/test_solution.py::TestRetrievalMetricWiring::test_run_full_eval_connects_optional_retrieval_metrics -v` | 14 passed, 1 skipped |
+| Task 3 — LLMJudge | `uv run pytest tests/test_solution.py::TestLLMJudge -v` | 4 passed |
+| Task 4 — Runner + report + regression | `uv run pytest tests/test_solution.py::TestBenchmarkRunner tests/test_solution.py::TestRunRegression tests/test_solution.py::TestRetrievalMetricWiring::test_runner_forwards_retrieved_contexts tests/test_solution.py::TestRetrievalMetricWiring::test_report_includes_retrieval_averages -v` | 11 passed |
+| Task 5 — FailureAnalyzer | `uv run pytest tests/test_solution.py::TestFailureAnalyzer tests/test_solution.py::TestGenerateImprovementLog -v` | 9 passed |
 
 Nếu cũng chạy toàn bộ suite sau mỗi checkpoint, số cộng dồn trên starter chuẩn là:
 
@@ -506,7 +497,7 @@ Với từng record, hỏi:
 Chạy:
 
 ```bash
-python validate_golden_dataset.py
+uv run python validate_golden_dataset.py
 ```
 
 Validator kiểm tra:
@@ -585,13 +576,13 @@ artifact, terminal screenshot hoặc commit.
 Sau khi validator báo PASS:
 
 ```bash
-python domain_assistant.py
+uv run python domain_assistant.py
 ```
 
 Lệnh mặc định tương đương:
 
 ```text
-python domain_assistant.py --corpus-dir data/technology_store --dataset golden_dataset.json --output artifacts/actual_answers.json --top-k 5
+uv run python domain_assistant.py --corpus-dir data/technology_store --dataset golden_dataset.json --output artifacts/actual_answers.json --top-k 5
 ```
 
 Terminal hiển thị từng bước:
@@ -629,13 +620,13 @@ mô tả thay đổi rõ ràng như một experiment riêng.
 Chạy:
 
 ```bash
-python evaluate_answers.py
+uv run python evaluate_answers.py
 ```
 
 Lệnh mặc định tương đương:
 
 ```text
-python evaluate_answers.py --golden golden_dataset.json --actual artifacts/actual_answers.json --output artifacts/benchmark_results.json
+uv run python evaluate_answers.py --golden golden_dataset.json --actual artifacts/actual_answers.json --output artifacts/benchmark_results.json
 ```
 
 Adapter thực hiện:
@@ -751,8 +742,8 @@ Copy-Item template.py solution/solution.py
 Sau đó chạy kiểm tra cuối trên mọi hệ điều hành:
 
 ```bash
-pytest tests/ -v
-python validate_golden_dataset.py
+uv run pytest tests/ -v
+uv run python validate_golden_dataset.py
 ```
 
 Lưu ý: tests ưu tiên load `solution/solution.py` nếu file này tồn tại. Vì vậy,
@@ -794,23 +785,23 @@ Git của lớp.
 ## 15. Lỗi thường gặp và cách xử lý
 
 Trước khi sửa code, kiểm tra terminal đang ở repo root (`pwd` trên macOS/Linux,
-`Get-Location` trên PowerShell) và chạy `python --version` để xác nhận virtual
-environment đã được activate.
+`Get-Location` trên PowerShell) và chạy `uv run python --version` để xác nhận môi trường uv
+đang dùng Python 3.11+.
 
 | Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
 |---|---|---|
 | Không nhận lệnh `python`, `python3` hoặc `py` | Python chưa được cài hoặc launcher chưa nằm trong `PATH` | Cài Python 3.11+ rồi dùng lệnh tương ứng với hệ điều hành ở Mục 2 |
-| `ImportError: cannot import name UTC from datetime` | Venv được tạo bằng Python 3.9/3.10 | Xóa/tạo lại venv bằng Python 3.11+; kiểm tra version trước khi cài requirements |
-| `ModuleNotFoundError: openai` hoặc `dotenv` | Chưa activate venv hoặc chưa cài requirements | Activate `.venv`, rồi chạy `python -m pip install -r requirements.txt` |
+| `ImportError: cannot import name UTC from datetime` | `.venv` cũ được tạo bằng Python 3.9/3.10 | Xóa `.venv` rồi chạy lại `uv sync` (uv dùng Python 3.11+ theo `pyproject.toml`) |
+| `ModuleNotFoundError: openai` hoặc `dotenv` | Chưa chạy `uv sync` hoặc chạy lệnh ngoài `uv run` | Chạy `uv sync`, rồi dùng `uv run <lệnh>` |
 | Validator liệt kê nhiều field rỗng | `golden_dataset.json` vẫn là form starter | Điền đủ 20 records; đây là lỗi mong đợi trước Exercise 3.1 |
 | `text is not a verbatim substring` | Evidence đã bị sửa wording/punctuation | Copy lại nguyên văn đoạn ngắn từ đúng `source_doc` |
 | `OPENAI_API_KEY is missing from .env` | Thiếu `.env`, key còn placeholder, hoặc chạy sai directory | Copy `.env.example` thành `.env`, điền key thật và chạy từ repo root |
 | `Dataset corpus_id ... does not match assistant corpus_id` | Đã sửa nhầm `corpus_id` | Khôi phục `orbittech-customer-support-v1` |
-| `question differs between artifacts` | Golden dataset đã đổi sau lần sinh answers | Validate rồi chạy lại `python domain_assistant.py` để tạo artifact mới |
+| `question differs between artifacts` | Golden dataset đã đổi sau lần sinh answers | Validate rồi chạy lại `uv run python domain_assistant.py` để tạo artifact mới |
 | `Complete the required TODOs in template.py first` | Core còn `NotImplementedError` | Quay lại checkpoint test tương ứng ở Mục 4.9 |
 | Sửa `template.py` nhưng tests vẫn cho kết quả cũ | `solution/solution.py` đã tồn tại và được tests ưu tiên | Copy lại theo lệnh macOS/Linux hoặc Windows ở Mục 13, rồi chạy tests |
 | Context Recall/Precision là `None` | Retrieval trace chưa được truyền vào full evaluator | Kiểm tra `actual_answers.json` có chunks, adapter tạo `QAPair.retrieved_contexts`, và Runner truyền `contexts` |
 
 Nếu lỗi không nằm trong bảng, đọc **test name hoặc dòng `ERROR:` đầu tiên** trước;
 đừng chỉ nhìn dòng tổng kết cuối terminal. Chạy lại đúng một targeted test bằng
-`pytest <test-path> -v` để thu hẹp nguyên nhân.
+`uv run pytest <test-path> -v` để thu hẹp nguyên nhân.

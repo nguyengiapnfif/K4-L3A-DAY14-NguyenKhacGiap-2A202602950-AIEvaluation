@@ -22,8 +22,7 @@ Tài liệu này định nghĩa 6 mốc tiến độ (Checkpoints CP0–CP5) tro
 ### CP0 — Setup & Baseline (Start + 0–15m | 14:15–14:30)
 
 - **Sản phẩm:**
-  - Virtual environment `.venv` đã được tạo và kích hoạt.
-  - Toàn bộ dependencies trong `requirements.txt` đã được cài đặt.
+  - Đã chạy `uv sync`: `.venv` được tạo và dependencies trong `pyproject.toml` đã được cài đặt.
   - File `.env` được tạo từ `.env.example` (điền `OPENAI_API_KEY` cho Part 3).
 - **Cần hiểu:**
   - Cấu trúc thư mục của repository và vai trò của từng module: `template.py` (evaluation engine) vs `domain_assistant.py` (system under evaluation).

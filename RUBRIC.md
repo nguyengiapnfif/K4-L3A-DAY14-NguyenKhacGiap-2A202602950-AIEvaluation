@@ -62,7 +62,7 @@
   - Code rõ ràng, đặt tên biến có nghĩa, tuân thủ type hints đầy đủ.
   - Trình bày chiến lược regression testing và quality gate CI / CD chi tiết trong `reflection.md`: ngưỡng chặn, bộ test regression, cơ chế giám sát.
 - **Điều kiện mất điểm:**
-  - Code vi phạm style, không có type hints, import thư viện không có trong `requirements.txt`.
+  - Code vi phạm style, không có type hints, import thư viện không có trong `pyproject.toml`.
   - Phần regression strategy trong `reflection.md` sơ sài hoặc bỏ trống.
 
 ---
