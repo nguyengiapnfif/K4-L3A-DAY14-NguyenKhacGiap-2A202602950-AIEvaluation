@@ -53,7 +53,7 @@ Hãy chạy các kiểm tra sau và tích chọn đầy đủ trước khi nộp
 - [x] `golden_dataset.json` đủ 20 QA (5 Easy + 7 Medium + 5 Hard + 3 Adversarial).
 - [x] Đã kiểm tra `artifacts/actual_answers.json` sau khi chạy RAG (`python domain_assistant.py`).
 - [x] `exercises.md` đã hoàn thành đầy đủ: Exercise 3.2 có đủ năm metrics và ba cases thấp nhất; Exercise 3.3 có rubric 1–5 và edge cases (Exercise 3.4 & 3.5 nếu chọn làm bonus).
-- [ ] `reflection.md` có ba 5 Whys analyses, bảng failure taxonomy và improvement log / regression strategy.
+- [x] `reflection.md` có ba 5 Whys analyses, bảng failure taxonomy và improvement log / regression strategy.
 - [x] `solution/solution.py` là bản hoàn thiện của `template.py` (học viên đã copy sau khi hoàn thành code).
 - [x] Không commit `.env`, API key hoặc dữ liệu nhạy cảm lên GitHub.
 
